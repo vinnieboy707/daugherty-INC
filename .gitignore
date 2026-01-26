@@ -12,6 +12,8 @@ yarn.lock
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+.env.docker
 
 # Build outputs
 dist/
@@ -34,6 +36,8 @@ uploads/
 # Logs
 logs/
 *.log
+backend/logs/
+pm2-*.log
 
 # Testing
 coverage/
@@ -59,3 +63,20 @@ Thumbs.db
 
 # Vite
 .vite/
+
+# Docker
+.dockerignore
+
+# PM2
+.pm2/
+ecosystem.config.js
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# SSL Certificates
+*.pem
+*.key
+*.crt
+*.csr

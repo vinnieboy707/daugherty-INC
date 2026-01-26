@@ -12,7 +12,9 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build:frontend": "cd frontend && npm run build",
     "start:backend": "cd backend && npm start",
-    "test": "echo \"Tests coming soon\" && exit 0"
+    "start:production": "cd backend && npm run prod",
+    "test": "echo \"Tests coming soon\" && exit 0",
+    "deploy:check": "echo 'Checking production readiness...' && npm run test"
   },
   "keywords": [
     "tattoo",

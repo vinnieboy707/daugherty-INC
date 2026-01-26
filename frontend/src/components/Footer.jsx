@@ -1,20 +1,30 @@
 import { Link } from 'react-router-dom'
 import { Mail, Phone, Instagram, MapPin } from 'lucide-react'
+import ShareWebsite from './ShareWebsite'
+import { useConfig } from '../hooks/useConfig'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
+  const { config } = useConfig()
   
-  // Load contact info from environment variables
+  // Load contact info from config API or fall back to environment variables
   const contactInfo = {
-    phone: import.meta.env.VITE_CONTACT_PHONE || '[To be provided]',
-    email: import.meta.env.VITE_CONTACT_EMAIL || '[To be provided]',
-    instagram: import.meta.env.VITE_CONTACT_INSTAGRAM || '[To be provided]',
-    location: import.meta.env.VITE_CONTACT_LOCATION || '[To be provided]'
+    phone: config?.contact?.phone || import.meta.env.VITE_CONTACT_PHONE || 'Contact for details',
+    email: config?.contact?.email || import.meta.env.VITE_CONTACT_EMAIL || 'Contact for details',
+    instagram: config?.contact?.instagram || import.meta.env.VITE_CONTACT_INSTAGRAM || 'Contact for details',
+    location: config?.contact?.location || import.meta.env.VITE_CONTACT_LOCATION || 'Mendocino, CA'
   }
 
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container-custom py-12">
+        {/* Share Section */}
+        <div className="mb-12 pb-8 border-b border-gray-800">
+          <div className="max-w-2xl mx-auto">
+            <ShareWebsite />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About */}
           <div>

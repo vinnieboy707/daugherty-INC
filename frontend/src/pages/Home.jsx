@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Calendar, Image, Sparkles, Star, Shield, Clock } from 'lucide-react'
+import ShareWebsite from '../components/ShareWebsite'
 
 const Home = () => {
   const features = [
@@ -69,6 +70,7 @@ const Home = () => {
               <Link to="/portfolio" className="btn bg-white text-primary-700 hover:bg-gray-100 text-lg px-8 py-4">
                 View Portfolio
               </Link>
+              <ShareWebsite compact showLabel={false} />
             </div>
           </motion.div>
         </div>

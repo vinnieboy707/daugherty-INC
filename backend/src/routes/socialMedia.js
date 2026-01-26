@@ -58,4 +58,17 @@ router.post(
   socialMediaController.importGooglePhotos
 );
 
+// Promote website on social media
+router.post(
+  '/promote',
+  adminAuth,
+  [
+    body('message').isString().trim().notEmpty().withMessage('Message is required'),
+    body('platforms').optional().isArray(),
+    body('scheduleTime').optional().isISO8601()
+  ],
+  validate,
+  socialMediaController.promote
+);
+
 module.exports = router;

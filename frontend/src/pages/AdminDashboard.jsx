@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users, Image as ImageIcon, CheckCircle, Share2, RefreshCw, X, Check, Heart, DollarSign, TrendingUp } from 'lucide-react'
 import { portfolioAPI, consultationAPI, reviewsAPI, socialMediaAPI, donationsAPI, paymentSettingsAPI } from '../services/api'
+import PromoteWebsiteSection from '../components/PromoteWebsiteSection'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('portfolio')
@@ -784,6 +785,29 @@ const AdminDashboard = () => {
                   </li>
                 </ul>
               </div>
+            </div>
+
+            {/* Promote Website Section */}
+            <div className="bg-gradient-to-br from-primary-900/50 to-accent-900/50 p-6 rounded-lg border border-primary-500/30">
+              <div className="flex items-center gap-3 mb-4">
+                <Share2 className="w-6 h-6 text-primary-400" />
+                <h3 className="text-xl font-display font-semibold">Promote Website</h3>
+              </div>
+              <p className="text-gray-400 mb-6">
+                Post promotional content to all connected social media platforms at once.
+              </p>
+
+              <PromoteWebsiteSection 
+                socialConnections={socialConnections}
+                onSuccess={(message) => {
+                  setSuccessMessage(message)
+                  setTimeout(() => setSuccessMessage(''), 5000)
+                }}
+                onError={(message) => {
+                  setErrorMessage(message)
+                  setTimeout(() => setErrorMessage(''), 5000)
+                }}
+              />
             </div>
           </div>
         )}

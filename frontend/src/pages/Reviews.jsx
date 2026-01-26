@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, ThumbsUp, User, Calendar, Filter, Plus } from 'lucide-react'
 import { reviewsAPI } from '../services/api'
+import ShareWebsite from '../components/ShareWebsite'
 
 const Reviews = () => {
   const [reviews, setReviews] = useState([])
@@ -78,9 +79,12 @@ const Reviews = () => {
           <h1 className="text-5xl font-display font-bold mb-4">
             Client <span className="text-gradient">Reviews</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
             See what our clients have to say about their tattoo experience
           </p>
+          <div className="flex justify-center">
+            <ShareWebsite compact />
+          </div>
         </motion.div>
 
         {/* Stats Overview */}

@@ -86,6 +86,7 @@ export const socialMediaAPI = {
   disconnect: (platform) => api.post(`/social-media/${platform}/disconnect`),
   sync: (platform) => api.post(`/social-media/${platform}/sync`),
   importGooglePhotos: (photoIds) => api.post('/social-media/google_photos/import', { photoIds }),
+  promote: (data) => api.post('/social-media/promote', data),
 };
 
 // Donations API
@@ -101,6 +102,12 @@ export const paymentSettingsAPI = {
   getPublic: () => api.get('/payment-settings/public'),
   get: () => api.get('/payment-settings'),
   update: (data) => api.put('/payment-settings', data),
+};
+
+// Config API
+export const configAPI = {
+  getPublic: () => api.get('/config/public'),
+  updatePublic: (data) => api.put('/config/public', data),
 };
 
 // Health check

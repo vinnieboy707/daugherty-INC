@@ -16,6 +16,7 @@ const availabilityRoutes = require('./routes/availability');
 const socialMediaRoutes = require('./routes/socialMedia');
 const donationRoutes = require('./routes/donations');
 const paymentSettingsRoutes = require('./routes/paymentSettings');
+const configRoutes = require('./routes/config');
 
 // Initialize Express app
 const app = express();
@@ -104,6 +105,7 @@ app.use('/api/availability', availabilityRoutes);
 app.use('/api/social-media', socialMediaRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/payment-settings', paymentSettingsRoutes);
+app.use('/api/config', configRoutes);
 
 // Welcome route
 app.get('/api', (req, res) => {

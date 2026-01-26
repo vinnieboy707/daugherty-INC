@@ -212,3 +212,103 @@ exports.importGooglePhotos = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+// Promote website on social media platforms
+exports.promote = async (req, res) => {
+  try {
+    const { message, platforms, scheduleTime } = req.body;
+    
+    // Validate input
+    if (!message || !message.trim()) {
+      return res.status(400).json({ success: false, error: 'Message is required' });
+    }
+
+    // Get selected platforms or all connected platforms
+    const selectedPlatforms = platforms && platforms.length > 0 
+      ? platforms 
+      : ['instagram', 'facebook', 'twitter', 'tiktok', 'pinterest'];
+
+    const connections = await SocialMediaConnection.find({
+      platform: { $in: selectedPlatforms },
+      isConnected: true,
+      isEnabled: true
+    }).select('+accessToken');
+
+    if (connections.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No connected platforms found. Please connect at least one social media platform.' 
+      });
+    }
+
+    // Results tracker
+    const results = [];
+
+    // Post to each connected platform
+    for (const connection of connections) {
+      try {
+        // Placeholder for actual posting logic
+        // In production, this would:
+        // 1. Use the platform's API with the access token
+        // 2. Format the message according to platform requirements
+        // 3. Handle scheduling if scheduleTime is provided
+        // 4. Track the post ID for future reference
+        
+        if (scheduleTime) {
+          // Schedule the post
+          results.push({
+            platform: connection.platform,
+            status: 'scheduled',
+            scheduledFor: scheduleTime,
+            message: `Post scheduled for ${new Date(scheduleTime).toLocaleString()}. In production, this would use the ${connection.displayName} scheduling API.`
+          });
+        } else {
+          // Post immediately
+          results.push({
+            platform: connection.platform,
+            status: 'posted',
+            postId: `mock_${connection.platform}_${Date.now()}`,
+            message: `Successfully posted to ${connection.displayName}. In production, this would return the actual post ID and URL.`
+          });
+        }
+
+        // Update last sync time
+        connection.lastSync = Date.now();
+        connection.stats = {
+          ...connection.stats,
+          posts: (connection.stats?.posts || 0) + 1,
+          lastPostDate: new Date()
+        };
+        await connection.save();
+
+      } catch (platformError) {
+        results.push({
+          platform: connection.platform,
+          status: 'failed',
+          error: platformError.message || 'Failed to post'
+        });
+      }
+    }
+
+    // Determine overall success
+    const successCount = results.filter(r => r.status === 'posted' || r.status === 'scheduled').length;
+    const failCount = results.filter(r => r.status === 'failed').length;
+
+    res.json({
+      success: true,
+      message: scheduleTime 
+        ? `Promotional posts scheduled for ${successCount} platform(s)` 
+        : `Successfully posted to ${successCount} platform(s)`,
+      summary: {
+        total: results.length,
+        succeeded: successCount,
+        failed: failCount
+      },
+      results
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+

@@ -1,6 +1,26 @@
 # Deployment Guide - Daugherty Inc
 
-## 🚀 Production Deployment
+## 🚀 Interactive Deployment (Recommended)
+
+**NEW:** We now offer an interactive deployment system that makes deployment easier than ever!
+
+```bash
+# Launch the interactive menu
+npm run deploy:interactive
+```
+
+The interactive system provides:
+- ✅ Menu-driven interface for all deployment scenarios
+- ✅ Automatic prerequisite validation
+- ✅ Visual progress tracking
+- ✅ Intelligent error handling
+- ✅ Multiple deployment modes (development, production, Docker)
+
+**See the complete guide:** [Interactive Deployment Documentation](INTERACTIVE_DEPLOYMENT.md)
+
+---
+
+## 🚀 Traditional Production Deployment
 
 This guide covers deploying the Daugherty Inc application to production.
 

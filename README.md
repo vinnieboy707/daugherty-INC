@@ -4,6 +4,7 @@ Consultation, appointment, and information guide for artist Nate Daugherty.
 ## Quick Links
 
 - **[Contact & Scheduling Information](CONTACT_AND_SCHEDULING.md)** - Find Nate's contact details and learn how to schedule your tattoo consultation
+- **[Interactive Deployment Guide](INTERACTIVE_DEPLOYMENT.md)** - 🚀 NEW: Easy deployment with menu-driven interface
 
 ## About
 
@@ -16,6 +17,23 @@ This repository contains comprehensive information about scheduling tattoo consu
 - Required information for consultations
 - VIP treatment options
 - Consultation process details
+
+## 🚀 Quick Deployment
+
+Get started with the interactive deployment system:
+
+```bash
+npm run deploy:interactive
+```
+
+This launches a user-friendly menu that guides you through:
+- Initial setup
+- Development environment
+- Production builds
+- Docker deployment
+- Updates and maintenance
+
+See the [Interactive Deployment Guide](INTERACTIVE_DEPLOYMENT.md) for complete documentation.
 
 ## Get Started
 

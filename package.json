@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "deploy": "bash ./deploy.sh",
+    "deploy:interactive": "bash ./deploy-interactive.sh",
+    "deploy:quick": "bash ./deploy-interactive.sh",
     "install:all": "npm run install:backend && npm run install:frontend",
     "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",

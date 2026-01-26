@@ -10,7 +10,8 @@ const PromoteWebsiteSection = ({ socialConnections, onSuccess, onError }) => {
   const [posting, setPosting] = useState(false)
   const [results, setResults] = useState(null)
 
-  const defaultMessage = "Check out Nate Daugherty, a talented Mendocino tattoo artist! Support local artists and promote individual business growth in our community. Book your consultation today! Visit: [website URL]"
+  const websiteUrl = window.location.origin
+  const defaultMessage = `Check out Nate Daugherty, a talented Mendocino tattoo artist! Support local artists and promote individual business growth in our community. Book your consultation today! ${websiteUrl}`
 
   const connectedPlatforms = socialConnections.filter(c => c.isConnected && c.isEnabled)
 

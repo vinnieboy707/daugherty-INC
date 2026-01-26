@@ -2,10 +2,13 @@ const Donation = require('../models/Donation');
 const PaymentSettings = require('../models/PaymentSettings');
 const { validationResult } = require('express-validator');
 
-// Initialize Stripe conditionally - only if key is provided
-const stripe = process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_dummy_key' 
-  ? require('stripe')(process.env.STRIPE_SECRET_KEY)
-  : null;
+// Initialize Stripe conditionally - only if key is provided and valid
+const isValidStripeKey = process.env.STRIPE_SECRET_KEY && 
+  process.env.STRIPE_SECRET_KEY.length > 20 &&
+  !process.env.STRIPE_SECRET_KEY.includes('dummy') &&
+  !process.env.STRIPE_SECRET_KEY.includes('test_your')
+
+const stripe = isValidStripeKey ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
 
 // Create a new donation
 exports.createDonation = async (req, res) => {
@@ -231,6 +234,13 @@ exports.getDonationStats = async (req, res) => {
 // Handle Stripe webhook
 exports.handleStripeWebhook = async (req, res) => {
   try {
+    if (!stripe) {
+      return res.status(503).json({ 
+        success: false, 
+        error: 'Payment processing is not configured' 
+      });
+    }
+
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -291,6 +301,13 @@ exports.handleStripeWebhook = async (req, res) => {
 // Create Stripe Payment Intent
 exports.createPaymentIntent = async (req, res) => {
   try {
+    if (!stripe) {
+      return res.status(503).json({ 
+        success: false, 
+        error: 'Payment processing is not configured. Please contact the administrator.' 
+      });
+    }
+
     const { amount } = req.body;
 
     if (!amount || amount < 1) {

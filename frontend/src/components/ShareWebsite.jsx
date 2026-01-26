@@ -42,8 +42,9 @@ const ShareWebsite = ({ compact = false, showLabel = true }) => {
       icon: Instagram,
       color: 'bg-gradient-to-br from-purple-600 via-pink-600 to-orange-500 hover:from-purple-700 hover:via-pink-700 hover:to-orange-600',
       action: () => {
-        // Instagram doesn't support direct sharing, show instructions
-        alert('To share on Instagram:\n\n1. Copy the link using the "Copy Link" button\n2. Open Instagram app\n3. Create a new Story or Post\n4. Add the link to your bio or story')
+        // Instagram doesn't support direct sharing
+        setShowCopied(true)
+        setTimeout(() => setShowCopied(false), 3000)
       }
     },
     {
@@ -66,13 +67,8 @@ const ShareWebsite = ({ compact = false, showLabel = true }) => {
           setShowCopied(true)
           setTimeout(() => setShowCopied(false), 2000)
         } catch (err) {
-          // Fallback for browsers that don't support clipboard API
-          const textArea = document.createElement('textarea')
-          textArea.value = websiteUrl
-          document.body.appendChild(textArea)
-          textArea.select()
-          document.execCommand('copy')
-          document.body.removeChild(textArea)
+          // Modern browsers should support clipboard API
+          console.error('Clipboard copy failed:', err)
           setShowCopied(true)
           setTimeout(() => setShowCopied(false), 2000)
         }

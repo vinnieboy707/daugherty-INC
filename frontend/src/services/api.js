@@ -35,6 +35,19 @@ export const consultationAPI = {
   }),
 };
 
+// Reviews API
+export const reviewsAPI = {
+  getAll: (params) => api.get('/reviews', { params }),
+  get: (id) => api.get(`/reviews/${id}`),
+  create: (data) => api.post('/reviews', data),
+  update: (id, data) => api.put(`/reviews/${id}`, data),
+  approve: (id) => api.put(`/reviews/${id}/approve`),
+  feature: (id, featured) => api.put(`/reviews/${id}/feature`, { featured }),
+  markHelpful: (id) => api.post(`/reviews/${id}/helpful`),
+  delete: (id) => api.delete(`/reviews/${id}`),
+  getPending: () => api.get('/reviews/admin/pending'),
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 

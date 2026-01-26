@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import Portfolio from './pages/Portfolio'
 import BookConsultation from './pages/BookConsultation'
+import Reviews from './pages/Reviews'
 import AdminDashboard from './pages/AdminDashboard'
 import AIAssistant from './components/AIAssistant'
 import LoadingScreen from './components/LoadingScreen'
@@ -29,6 +30,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/book" element={<BookConsultation />} />
+          <Route path="/reviews" element={<Reviews />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </main>

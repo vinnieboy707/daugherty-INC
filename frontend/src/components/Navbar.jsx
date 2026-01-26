@@ -9,6 +9,7 @@ const Navbar = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/portfolio', label: 'Portfolio' },
+    { path: '/reviews', label: 'Reviews' },
     { path: '/book', label: 'Book Consultation' },
   ]
 

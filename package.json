@@ -4,6 +4,7 @@
   "description": "Ultra-premium full-stack tattoo consultation and booking system",
   "main": "index.js",
   "scripts": {
+    "deploy": "bash ./deploy.sh",
     "install:all": "npm run install:backend && npm run install:frontend",
     "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",

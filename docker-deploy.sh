@@ -3,6 +3,16 @@
 # Error-resistant and failproof deployment system
 
 set -e  # Exit on error
+
+# Detect docker compose command variant
+if command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+elif docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+else
+    COMPOSE_CMD=""
+fi
+
 trap 'error_handler $? $LINENO' ERR
 
 # Colors for output
@@ -16,7 +26,7 @@ NC='\033[0m' # No Color
 error_handler() {
     echo -e "${RED}✗ Error occurred in script at line $2 with exit code $1${NC}"
     echo -e "${YELLOW}Rolling back changes...${NC}"
-    docker-compose down 2>/dev/null || true
+    $COMPOSE_CMD down 2>/dev/null || true
     exit $1
 }
 
@@ -58,7 +68,7 @@ fi
 log_success "Docker is installed"
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+if [ -z "${COMPOSE_CMD}" ]; then
     log_error "Docker Compose is not installed"
     echo "Please install Docker Compose: https://docs.docker.com/compose/install/"
     exit 1
@@ -142,9 +152,9 @@ log_success "Environment validation passed"
 # Step 4: Stop any existing containers
 log_info "Step 4/10: Stopping existing containers..."
 
-if docker-compose ps -q 2>/dev/null | grep -q .; then
+if ${COMPOSE_CMD} ps -q 2>/dev/null | grep -q .; then
     log_info "Stopping running containers..."
-    docker-compose down
+    ${COMPOSE_CMD} down
     log_success "Existing containers stopped"
 else
     log_success "No existing containers to stop"
@@ -159,7 +169,7 @@ log_success "Base images pulled"
 # Step 6: Build application images
 log_info "Step 6/10: Building application images..."
 
-docker-compose build --no-cache
+${COMPOSE_CMD} build --no-cache
 if [ $? -eq 0 ]; then
     log_success "Application images built successfully"
 else
@@ -177,7 +187,7 @@ log_success "Directories created with proper permissions"
 # Step 8: Start services
 log_info "Step 8/10: Starting services..."
 
-docker-compose --env-file .env.docker up -d
+${COMPOSE_CMD} --env-file .env.docker up -d
 
 if [ $? -eq 0 ]; then
     log_success "Services started successfully"
@@ -212,7 +222,7 @@ echo ""
 if [ $WAIT_TIME -ge $MAX_WAIT ]; then
     log_error "Services failed to become healthy within ${MAX_WAIT} seconds"
     log_info "Checking container logs..."
-    docker-compose logs --tail=50
+    ${COMPOSE_CMD} logs --tail=50
     exit 1
 fi
 
@@ -270,11 +280,11 @@ echo "  Backend API:  http://localhost:${BACKEND_PORT:-5000}/api"
 echo "  Health Check: http://localhost:${BACKEND_PORT:-5000}/api/health"
 echo ""
 echo "Useful commands:"
-echo "  View logs:        docker-compose logs -f"
-echo "  Stop services:    docker-compose stop"
-echo "  Restart services: docker-compose restart"
-echo "  Check status:     docker-compose ps"
-echo "  Run backup:       docker-compose run --rm backup"
+echo "  View logs:        ${COMPOSE_CMD} logs -f"
+echo "  Stop services:    ${COMPOSE_CMD} stop"
+echo "  Restart services: ${COMPOSE_CMD} restart"
+echo "  Check status:     ${COMPOSE_CMD} ps"
+echo "  Run backup:       ${COMPOSE_CMD} run --rm backup"
 echo ""
 echo "Documentation:"
 echo "  DOCKER_DEPLOYMENT.md     - Complete Docker guide"

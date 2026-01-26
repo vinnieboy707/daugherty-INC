@@ -81,9 +81,11 @@ check_prerequisites() {
         log_warn "Docker not installed (optional for Docker deployment)"
     fi
     
-    # Check Docker Compose (optional)
-    if command -v docker-compose &> /dev/null || docker compose version &> /dev/null; then
-        log_success "Docker Compose available"
+    # Check Docker Compose (optional) - prioritize newer 'docker compose'
+    if docker compose version &> /dev/null; then
+        log_success "Docker Compose available (v2)"
+    elif command -v docker-compose &> /dev/null; then
+        log_success "Docker Compose available (legacy)"
     else
         log_warn "Docker Compose not available (optional for Docker deployment)"
     fi
@@ -105,6 +107,14 @@ check_prerequisites() {
     
     log_success "All prerequisites met!"
     return 0
+}
+
+# Cleanup function for caches and artifacts
+cleanup_artifacts() {
+    log_info "Cleaning caches and build artifacts..."
+    rm -rf backend/node_modules frontend/node_modules frontend/dist || true
+    npm cache clean --force >/dev/null 2>&1 || true
+    log_success "Cleanup completed"
 }
 
 # Display deployment menu
@@ -268,10 +278,7 @@ mode_production_build() {
     ((current++))
     show_progress $current $steps
     echo ""
-    log_info "Cleaning caches..."
-    rm -rf backend/node_modules frontend/node_modules frontend/dist || true
-    npm cache clean --force >/dev/null 2>&1 || true
-    log_success "Caches cleaned"
+    cleanup_artifacts
     
     # Install backend dependencies
     ((current++))
@@ -360,7 +367,15 @@ mode_update_only() {
     show_progress $current $steps
     echo ""
     log_info "Pulling latest changes from git..."
-    git pull || log_warn "Git pull failed or not in a git repository"
+    if [ -d .git ]; then
+        if git pull; then
+            log_success "Git pull completed"
+        else
+            log_warn "Git pull failed - check for conflicts or connection issues"
+        fi
+    else
+        log_warn "Not a git repository - skipping git pull"
+    fi
     
     # Update dependencies
     ((current++))
@@ -402,7 +417,7 @@ mode_clean_rebuild() {
         return 0
     fi
     
-    local steps=6
+    local steps=4
     local current=0
     
     # Clean everything
@@ -415,15 +430,7 @@ mode_clean_rebuild() {
     ((current++))
     show_progress $current $steps
     echo ""
-    log_info "Removing build artifacts..."
-    rm -rf frontend/dist backend/dist || true
-    
-    ((current++))
-    show_progress $current $steps
-    echo ""
-    log_info "Cleaning npm cache..."
-    npm cache clean --force >/dev/null 2>&1 || true
-    log_success "Cleanup completed"
+    cleanup_artifacts
     
     # Reinstall and rebuild
     ((current++))
@@ -507,11 +514,13 @@ mode_test_build() {
     show_progress $current $steps
     echo ""
     log_info "Attempting test build..."
-    if npm run build:frontend > /tmp/build-test.log 2>&1; then
+    local build_log="./build-test.log"
+    if npm run build:frontend > "$build_log" 2>&1; then
         log_success "Test build successful"
+        rm -f "$build_log"
     else
         log_error "Test build failed"
-        log_info "Check /tmp/build-test.log for details"
+        log_info "Check $build_log for details"
         all_ok=false
     fi
     

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users, Image as ImageIcon, CheckCircle, Share2, RefreshCw, X, Check, Heart, DollarSign, TrendingUp } from 'lucide-react'
-import { portfolioAPI, consultationAPI, reviewsAPI, socialMediaAPI, donationsAPI, paymentSettingsAPI } from '../services/api'
+import { portfolioAPI, consultationAPI, reviewsAPI, socialMediaAPI, donationsAPI, paymentSettingsAPI, achAPI } from '../services/api'
 import PromoteWebsiteSection from '../components/PromoteWebsiteSection'
 
 const AdminDashboard = () => {
@@ -14,6 +14,8 @@ const AdminDashboard = () => {
   const [donations, setDonations] = useState([])
   const [donationStats, setDonationStats] = useState(null)
   const [paymentSettings, setPaymentSettings] = useState(null)
+  const [achTransactions, setAchTransactions] = useState([])
+  const [achSummary, setAchSummary] = useState(null)
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
@@ -32,6 +34,7 @@ const AdminDashboard = () => {
       fetchDonations()
       fetchDonationStats()
       fetchPaymentSettings()
+      fetchAchTransactions()
     }
   }, [activeTab])
 
@@ -120,6 +123,16 @@ const AdminDashboard = () => {
       setPaymentSettings(response.data.data)
     } catch (error) {
       console.error('Error fetching payment settings:', error)
+    }
+  }
+
+  const fetchAchTransactions = async () => {
+    try {
+      const response = await achAPI.getAccounts()
+      setAchTransactions(response.data.data.accounts || [])
+      setAchSummary(response.data.data.summary || null)
+    } catch (error) {
+      console.error('Error fetching ACH transactions:', error)
     }
   }
 
@@ -1051,6 +1064,96 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* ACH Transactions Section */}
+            {achTransactions && achTransactions.length > 0 && (
+              <div className="card">
+                <h2 className="text-2xl font-display font-bold mb-4 flex items-center gap-2">
+                  ACH Transactions
+                  {achSummary && (
+                    <span className="text-sm font-normal text-gray-600">
+                      ({achSummary.total} total)
+                    </span>
+                  )}
+                </h2>
+                
+                {/* ACH Summary Stats */}
+                {achSummary && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    {Object.entries(achSummary.byStatus || {}).map(([status, count]) => (
+                      <div key={status} className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-xs text-gray-600 uppercase mb-1">{status}</p>
+                        <p className="text-2xl font-bold">{count}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ACH Transactions Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4">Date</th>
+                        <th className="text-left py-3 px-4">Donor</th>
+                        <th className="text-left py-3 px-4">Amount</th>
+                        <th className="text-left py-3 px-4">Bank Account</th>
+                        <th className="text-left py-3 px-4">Type</th>
+                        <th className="text-left py-3 px-4">ACH Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {achTransactions.map((transaction) => (
+                        <tr key={transaction._id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4 text-sm">
+                            {new Date(transaction.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            {transaction.donorName || 'Anonymous'}
+                            {transaction.donorEmail && (
+                              <div className="text-xs text-gray-500">{transaction.donorEmail}</div>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-sm font-semibold">
+                            ${transaction.amount?.toFixed(2) || '0.00'}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            {transaction.bankName && (
+                              <div className="text-xs text-gray-600">{transaction.bankName}</div>
+                            )}
+                            <div className="text-xs text-gray-500">
+                              ****{transaction.bankAccountLast4}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs uppercase">
+                              {transaction.bankAccountType || 'checking'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              transaction.achStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                              transaction.achStatus === 'processing' ? 'bg-blue-100 text-blue-700' :
+                              transaction.achStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              transaction.achStatus === 'failed' ? 'bg-red-100 text-red-700' :
+                              transaction.achStatus === 'requires_verification' ? 'bg-orange-100 text-orange-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {transaction.achStatus || 'pending'}
+                            </span>
+                            {transaction.achFailureReason && (
+                              <div className="text-xs text-red-600 mt-1">
+                                {transaction.achFailureReason}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Donation by Payment Method */}
             {donationStats && donationStats.byPaymentMethod.length > 0 && (

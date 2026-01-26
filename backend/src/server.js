@@ -17,6 +17,7 @@ const socialMediaRoutes = require('./routes/socialMedia');
 const donationRoutes = require('./routes/donations');
 const paymentSettingsRoutes = require('./routes/paymentSettings');
 const configRoutes = require('./routes/config');
+const achRoutes = require('./routes/ach');
 
 // Initialize Express app
 const app = express();
@@ -69,6 +70,7 @@ app.use('/api/', limiter);
 app.use('/api/consultations', strictLimiter);
 app.use('/api/reviews', strictLimiter);
 app.use('/api/consultations/ai/chat', strictLimiter);
+app.use('/api/ach', strictLimiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
@@ -106,6 +108,7 @@ app.use('/api/social-media', socialMediaRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/payment-settings', paymentSettingsRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/ach', achRoutes);
 
 // Welcome route
 app.get('/api', (req, res) => {
@@ -119,6 +122,7 @@ app.get('/api', (req, res) => {
       availability: '/api/availability',
       donations: '/api/donations',
       paymentSettings: '/api/payment-settings',
+      ach: '/api/ach',
       health: '/api/health'
     }
   });

@@ -284,6 +284,60 @@ exports.handleStripeWebhook = async (req, res) => {
         }
         break;
 
+      // ACH-specific events
+      case 'charge.succeeded':
+        const successCharge = event.data.object;
+        
+        // Check if this is an ACH charge
+        if (successCharge.payment_method_details?.type === 'ach_debit') {
+          const achDonation = await Donation.findOne({ 
+            transactionId: successCharge.id 
+          });
+
+          if (achDonation) {
+            achDonation.status = 'completed';
+            achDonation.achStatus = 'completed';
+            achDonation.completedAt = new Date();
+            await achDonation.save();
+          }
+        }
+        break;
+
+      case 'charge.failed':
+        const failedCharge = event.data.object;
+        
+        // Check if this is an ACH charge
+        if (failedCharge.payment_method_details?.type === 'ach_debit' || 
+            failedCharge.payment_method_details?.ach_debit) {
+          const achFailedDonation = await Donation.findOne({ 
+            transactionId: failedCharge.id 
+          });
+
+          if (achFailedDonation) {
+            achFailedDonation.status = 'failed';
+            achFailedDonation.achStatus = 'failed';
+            achFailedDonation.achFailureReason = failedCharge.failure_message || 'ACH payment failed';
+            await achFailedDonation.save();
+          }
+        }
+        break;
+
+      case 'charge.pending':
+        const pendingCharge = event.data.object;
+        
+        // Check if this is an ACH charge
+        if (pendingCharge.payment_method_details?.type === 'ach_debit') {
+          const achPendingDonation = await Donation.findOne({ 
+            transactionId: pendingCharge.id 
+          });
+
+          if (achPendingDonation) {
+            achPendingDonation.achStatus = 'processing';
+            await achPendingDonation.save();
+          }
+        }
+        break;
+
       default:
         console.log(`Unhandled event type ${event.type}`);
     }

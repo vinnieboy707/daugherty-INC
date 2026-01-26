@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { donationsAPI, paymentSettingsAPI } from '../services/api'
+import ACHPaymentForm from './ACHPaymentForm'
 
 // Payment Form Component (inside Stripe Elements)
 const PaymentForm = ({ amount, paymentMethod, donorInfo, onSuccess, onError }) => {
@@ -421,15 +422,21 @@ const DonateModal = ({ isOpen, onClose }) => {
                 )}
 
                 {paymentMethod === 'ach' && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
-                      <p className="font-medium mb-2">Bank Transfer Instructions:</p>
-                      <p>Please contact us to set up a bank transfer donation.</p>
-                    </div>
-                    <button onClick={handleSubmit} disabled={loading} className="btn btn-primary w-full">
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Request'}
-                    </button>
-                  </div>
+                  <ACHPaymentForm
+                    amount={amount}
+                    onSuccess={(data) => {
+                      console.log('ACH payment success:', data);
+                      setStep('success');
+                    }}
+                    onError={(err) => setError(err)}
+                    stripePromise={stripePromise}
+                    donorInfo={{
+                      donorName: isAnonymous ? 'Anonymous' : donorName,
+                      donorEmail,
+                      isAnonymous,
+                      message: message || defaultMessage
+                    }}
+                  />
                 )}
 
                 {(paymentMethod === 'btc' || paymentMethod === 'crypto') && (

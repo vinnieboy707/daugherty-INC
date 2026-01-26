@@ -97,6 +97,20 @@ export const donationsAPI = {
   createPaymentIntent: (amount) => api.post('/donations/create-payment-intent', { amount }),
 };
 
+// ACH API
+export const achAPI = {
+  createBankAccount: (data) => api.post('/ach/create-bank-account', data),
+  verifyMicroDeposits: (data) => api.post('/ach/verify-micro-deposits', data),
+  processPayment: (data) => api.post('/ach/process-payment', data),
+  getAccounts: () => api.get('/ach/accounts', {
+    headers: { 'x-admin-key': localStorage.getItem('adminKey') }
+  }),
+  deleteAccount: (id, data) => api.delete(`/ach/accounts/${id}`, {
+    data,
+    headers: { 'x-admin-key': localStorage.getItem('adminKey') }
+  }),
+};
+
 // Payment Settings API
 export const paymentSettingsAPI = {
   getPublic: () => api.get('/payment-settings/public'),

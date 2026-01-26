@@ -41,6 +41,58 @@ const donationSchema = new mongoose.Schema({
     required: false
   },
 
+  // ACH-specific fields
+  bankAccountLast4: {
+    type: String,
+    required: false,
+    match: [/^\d{4}$/, 'Bank account last 4 must be 4 digits']
+  },
+
+  bankAccountType: {
+    type: String,
+    required: false,
+    enum: ['checking', 'savings']
+  },
+
+  bankName: {
+    type: String,
+    required: false,
+    trim: true
+  },
+
+  achStatus: {
+    type: String,
+    required: false,
+    enum: ['pending', 'processing', 'completed', 'failed', 'requires_verification'],
+    default: 'pending'
+  },
+
+  plaidVerificationId: {
+    type: String,
+    required: false
+  },
+
+  microDepositAmounts: {
+    type: [Number],
+    required: false,
+    validate: {
+      validator: function(v) {
+        return !v || v.length === 2;
+      },
+      message: 'Micro deposit amounts must be exactly 2 values'
+    }
+  },
+
+  stripeBankAccountId: {
+    type: String,
+    required: false
+  },
+
+  achFailureReason: {
+    type: String,
+    required: false
+  },
+
   // Donor Information (optional/anonymous)
   donorName: {
     type: String,

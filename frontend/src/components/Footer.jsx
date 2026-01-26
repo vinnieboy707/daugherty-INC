@@ -1,7 +1,16 @@
+import { Link } from 'react-router-dom'
 import { Mail, Phone, Instagram, MapPin } from 'lucide-react'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
+  
+  // Load contact info from environment variables
+  const contactInfo = {
+    phone: import.meta.env.VITE_CONTACT_PHONE || '[To be provided]',
+    email: import.meta.env.VITE_CONTACT_EMAIL || '[To be provided]',
+    instagram: import.meta.env.VITE_CONTACT_INSTAGRAM || '[To be provided]',
+    location: import.meta.env.VITE_CONTACT_LOCATION || '[To be provided]'
+  }
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -23,16 +32,19 @@ const Footer = () => {
             <h4 className="font-display font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="/" className="hover:text-primary-400 transition-colors">Home</a>
+                <Link to="/" className="hover:text-primary-400 transition-colors">Home</Link>
               </li>
               <li>
-                <a href="/portfolio" className="hover:text-primary-400 transition-colors">Portfolio</a>
+                <Link to="/portfolio" className="hover:text-primary-400 transition-colors">Portfolio</Link>
               </li>
               <li>
-                <a href="/book" className="hover:text-primary-400 transition-colors">Book Consultation</a>
+                <Link to="/reviews" className="hover:text-primary-400 transition-colors">Reviews</Link>
               </li>
               <li>
-                <a href="/admin" className="hover:text-primary-400 transition-colors">Admin</a>
+                <Link to="/book" className="hover:text-primary-400 transition-colors">Book Consultation</Link>
+              </li>
+              <li>
+                <Link to="/admin" className="hover:text-primary-400 transition-colors">Admin</Link>
               </li>
             </ul>
           </div>
@@ -43,19 +55,19 @@ const Footer = () => {
             <ul className="space-y-3 text-gray-400">
               <li className="flex items-center gap-2">
                 <Phone size={16} />
-                <span>(555) 123-4567</span>
+                <span>{contactInfo.phone}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail size={16} />
-                <span>nate@daugherty-inc.com</span>
+                <span>{contactInfo.email}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Instagram size={16} />
-                <span>@natedaugherty_ink</span>
+                <span>{contactInfo.instagram}</span>
               </li>
               <li className="flex items-center gap-2">
                 <MapPin size={16} />
-                <span>Los Angeles, CA</span>
+                <span>{contactInfo.location}</span>
               </li>
             </ul>
           </div>

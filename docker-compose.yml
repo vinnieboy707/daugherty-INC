@@ -20,11 +20,7 @@ services:
     networks:
       - daugherty-network
     healthcheck:
-      test: |
-        mongosh --eval "db.adminCommand('ping')" \
-        -u $$MONGO_INITDB_ROOT_USERNAME \
-        -p $$MONGO_INITDB_ROOT_PASSWORD \
-        --authenticationDatabase admin --quiet || exit 1
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh \"mongodb://$$MONGO_INITDB_ROOT_USERNAME:$$MONGO_INITDB_ROOT_PASSWORD@localhost:27017/daugherty-inc?authSource=admin\" --quiet"]
       interval: 10s
       timeout: 5s
       retries: 5

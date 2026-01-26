@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Image as ImageIcon, Upload, Grid, List, Search, X } from 'lucide-react'
+import { Image as ImageIcon, Grid, List, Search, X } from 'lucide-react'
 import { portfolioAPI } from '../services/api'
 
 const Portfolio = () => {

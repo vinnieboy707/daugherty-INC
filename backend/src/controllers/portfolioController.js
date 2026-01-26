@@ -1,4 +1,5 @@
 const Portfolio = require('../models/Portfolio');
+const fs = require('fs').promises;
 const path = require('path');
 
 // Get all portfolio images
@@ -48,7 +49,32 @@ exports.uploadPortfolio = async (req, res) => {
 exports.updatePortfolio = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+
+    // Whitelist allowed fields to prevent updating protected or unintended fields
+    const allowedFields = ['description', 'tags', 'isVisible', 'displayOrder'];
+    const updates = {};
+
+    allowedFields.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        if (field === 'tags') {
+          const tagsValue = req.body.tags;
+          if (Array.isArray(tagsValue)) {
+            updates.tags = tagsValue.map(tag => String(tag).trim()).filter(Boolean);
+          } else if (typeof tagsValue === 'string') {
+            updates.tags = tagsValue
+              .split(',')
+              .map(tag => tag.trim())
+              .filter(Boolean);
+          }
+        } else {
+          updates[field] = req.body[field];
+        }
+      }
+    });
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, error: 'No valid fields provided for update' });
+    }
 
     const portfolio = await Portfolio.findByIdAndUpdate(id, updates, { new: true });
     
@@ -88,10 +114,12 @@ exports.deletePortfolio = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Portfolio item not found' });
     }
 
-    // Delete file from disk
-    const fs = require('fs');
-    if (fs.existsSync(portfolio.path)) {
-      fs.unlinkSync(portfolio.path);
+    // Delete file from disk using async operations
+    try {
+      await fs.unlink(portfolio.path);
+    } catch (error) {
+      // Log error but don't fail the request if file doesn't exist
+      console.error('Error deleting file:', error.message);
     }
 
     res.json({ success: true, message: 'Portfolio item deleted' });

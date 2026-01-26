@@ -3,8 +3,20 @@ const Consultation = require('../models/Consultation');
 // Create new consultation request
 exports.createConsultation = async (req, res) => {
   try {
+    // Parse vipServices if it's a JSON string
+    let vipServices = req.body.vipServices;
+    if (typeof vipServices === 'string') {
+      try {
+        vipServices = JSON.parse(vipServices);
+      } catch (e) {
+        // If parsing fails, keep as string or set to empty array
+        vipServices = [];
+      }
+    }
+
     const consultationData = {
       ...req.body,
+      vipServices,
       referenceImages: [],
       selfieImage: null,
       previewImages: []
@@ -74,9 +86,21 @@ exports.getConsultation = async (req, res) => {
 // Update consultation
 exports.updateConsultation = async (req, res) => {
   try {
+    // Only allow specific fields to be updated
+    const allowedFields = ['status', 'adminNotes', 'preferredDate'];
+    const updateData = {};
+
+    allowedFields.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+        updateData[field] = req.body[field];
+      }
+    });
+
+    updateData.updatedAt = Date.now();
+
     const consultation = await Consultation.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, updatedAt: Date.now() },
+      updateData,
       { new: true }
     );
 
@@ -130,7 +154,7 @@ exports.generatePreview = async (req, res) => {
 // AI Assistant endpoint (placeholder for AI chat functionality)
 exports.aiAssistant = async (req, res) => {
   try {
-    const { message, consultationId } = req.body;
+    const { message } = req.body;
 
     // Placeholder AI response
     // In production, this would integrate with OpenAI or similar service

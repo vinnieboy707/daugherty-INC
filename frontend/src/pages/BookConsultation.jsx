@@ -5,7 +5,6 @@ import { consultationAPI } from '../services/api'
 import Calendar from '../components/Calendar'
 
 const BookConsultation = () => {
-  const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',

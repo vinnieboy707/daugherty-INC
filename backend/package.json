@@ -1,0 +1,33 @@
+{
+  "name": "daugherty-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Nate Daugherty tattoo consultation booking system",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": ["tattoo", "booking", "consultation", "api"],
+  "author": "Nate Daugherty",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "mongoose": "^8.0.3",
+    "multer": "^1.4.5-lts.1",
+    "express-validator": "^7.0.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

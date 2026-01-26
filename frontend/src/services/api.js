@@ -88,6 +88,21 @@ export const socialMediaAPI = {
   importGooglePhotos: (photoIds) => api.post('/social-media/google_photos/import', { photoIds }),
 };
 
+// Donations API
+export const donationsAPI = {
+  create: (data) => api.post('/donations', data),
+  getAll: (params) => api.get('/donations', { params }),
+  getStats: (params) => api.get('/donations/stats', { params }),
+  createPaymentIntent: (amount) => api.post('/donations/create-payment-intent', { amount }),
+};
+
+// Payment Settings API
+export const paymentSettingsAPI = {
+  getPublic: () => api.get('/payment-settings/public'),
+  get: () => api.get('/payment-settings'),
+  update: (data) => api.put('/payment-settings', data),
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 

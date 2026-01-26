@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users, Image as ImageIcon, CheckCircle, Share2, RefreshCw, X, Check } from 'lucide-react'
-import { portfolioAPI, consultationAPI, reviewsAPI, socialMediaAPI } from '../services/api'
+import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users, Image as ImageIcon, CheckCircle, Share2, RefreshCw, X, Check, Heart, DollarSign, TrendingUp } from 'lucide-react'
+import { portfolioAPI, consultationAPI, reviewsAPI, socialMediaAPI, donationsAPI, paymentSettingsAPI } from '../services/api'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('portfolio')
@@ -10,6 +10,9 @@ const AdminDashboard = () => {
   const [consultations, setConsultations] = useState([])
   const [reviewsWithPhotos, setReviewsWithPhotos] = useState([])
   const [socialConnections, setSocialConnections] = useState([])
+  const [donations, setDonations] = useState([])
+  const [donationStats, setDonationStats] = useState(null)
+  const [paymentSettings, setPaymentSettings] = useState(null)
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
 
@@ -22,6 +25,10 @@ const AdminDashboard = () => {
       fetchReviewsWithPhotos()
     } else if (activeTab === 'social-media') {
       fetchSocialConnections()
+    } else if (activeTab === 'donations') {
+      fetchDonations()
+      fetchDonationStats()
+      fetchPaymentSettings()
     }
   }, [activeTab])
 
@@ -80,6 +87,47 @@ const AdminDashboard = () => {
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchDonations = async () => {
+    setLoading(true)
+    try {
+      const response = await donationsAPI.getAll({ limit: 50 })
+      setDonations(response.data.data)
+    } catch (error) {
+      console.error('Error fetching donations:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchDonationStats = async () => {
+    try {
+      const response = await donationsAPI.getStats()
+      setDonationStats(response.data.data)
+    } catch (error) {
+      console.error('Error fetching donation stats:', error)
+    }
+  }
+
+  const fetchPaymentSettings = async () => {
+    try {
+      const response = await paymentSettingsAPI.get()
+      setPaymentSettings(response.data.data)
+    } catch (error) {
+      console.error('Error fetching payment settings:', error)
+    }
+  }
+
+  const handleUpdatePaymentSettings = async (updatedSettings) => {
+    try {
+      const response = await paymentSettingsAPI.update(updatedSettings)
+      setPaymentSettings(response.data.data)
+      alert('Payment settings updated successfully!')
+    } catch (error) {
+      console.error('Error updating payment settings:', error)
+      alert('Failed to update payment settings')
     }
   }
 
@@ -267,6 +315,13 @@ const AdminDashboard = () => {
           >
             <Share2 size={20} />
             Social Media & Integrations
+          </button>
+          <button
+            onClick={() => setActiveTab('donations')}
+            className={`btn ${activeTab === 'donations' ? 'btn-primary' : 'btn-secondary'}`}
+          >
+            <Heart size={20} />
+            Donations & Payments
           </button>
         </div>
 
@@ -724,6 +779,258 @@ const AdminDashboard = () => {
                 </ul>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Donations Tab */}
+        {activeTab === 'donations' && (
+          <div className="space-y-6">
+            {/* Statistics Cards */}
+            {donationStats && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="card bg-gradient-to-br from-primary-500 to-primary-600 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-primary-100 text-sm mb-1">Total Raised</p>
+                      <p className="text-3xl font-bold">
+                        ${donationStats.total.totalAmount?.toFixed(2) || '0.00'}
+                      </p>
+                    </div>
+                    <DollarSign className="w-12 h-12 text-primary-200" />
+                  </div>
+                </div>
+
+                <div className="card bg-gradient-to-br from-accent-500 to-accent-600 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-accent-100 text-sm mb-1">Total Donations</p>
+                      <p className="text-3xl font-bold">{donationStats.total.totalCount || 0}</p>
+                    </div>
+                    <Heart className="w-12 h-12 text-accent-200" fill="currentColor" />
+                  </div>
+                </div>
+
+                <div className="card bg-gradient-to-br from-green-500 to-green-600 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-100 text-sm mb-1">Average Donation</p>
+                      <p className="text-3xl font-bold">
+                        ${donationStats.total.averageAmount?.toFixed(2) || '0.00'}
+                      </p>
+                    </div>
+                    <TrendingUp className="w-12 h-12 text-green-200" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Payment Settings */}
+            {paymentSettings && (
+              <div className="card">
+                <h2 className="text-2xl font-display font-bold mb-4">Payment Settings</h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Stripe Publishable Key</label>
+                      <input
+                        type="text"
+                        value={paymentSettings.stripePublishableKey || ''}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, stripePublishableKey: e.target.value})}
+                        placeholder="pk_..."
+                        className="input"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Stripe Account ID</label>
+                      <input
+                        type="text"
+                        value={paymentSettings.stripeAccountId || ''}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, stripeAccountId: e.target.value})}
+                        placeholder="acct_..."
+                        className="input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Bitcoin Wallet</label>
+                      <input
+                        type="text"
+                        value={paymentSettings.btcWalletAddress || ''}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, btcWalletAddress: e.target.value})}
+                        placeholder="BTC address"
+                        className="input"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Ethereum Wallet</label>
+                      <input
+                        type="text"
+                        value={paymentSettings.ethWalletAddress || ''}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, ethWalletAddress: e.target.value})}
+                        placeholder="ETH address"
+                        className="input"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">USDC Wallet</label>
+                      <input
+                        type="text"
+                        value={paymentSettings.usdcWalletAddress || ''}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, usdcWalletAddress: e.target.value})}
+                        placeholder="USDC address"
+                        className="input"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Default Message</label>
+                    <textarea
+                      value={paymentSettings.defaultMessage || ''}
+                      onChange={(e) => setPaymentSettings({...paymentSettings, defaultMessage: e.target.value})}
+                      rows="3"
+                      maxLength="500"
+                      className="input resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={paymentSettings.enableCreditCard}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, enableCreditCard: e.target.checked})}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Enable Credit/Debit</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={paymentSettings.enableACH}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, enableACH: e.target.checked})}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Enable ACH</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={paymentSettings.enableBitcoin}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, enableBitcoin: e.target.checked})}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Enable Bitcoin</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={paymentSettings.enableCrypto}
+                        onChange={(e) => setPaymentSettings({...paymentSettings, enableCrypto: e.target.checked})}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Enable Crypto</span>
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={() => handleUpdatePaymentSettings(paymentSettings)}
+                    className="btn btn-primary"
+                  >
+                    Save Payment Settings
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Recent Donations */}
+            <div className="card">
+              <h2 className="text-2xl font-display font-bold mb-4">
+                Recent Donations ({donations.length})
+              </h2>
+
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mx-auto"></div>
+                </div>
+              ) : donations.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">No donations yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4">Date</th>
+                        <th className="text-left py-3 px-4">Donor</th>
+                        <th className="text-left py-3 px-4">Amount</th>
+                        <th className="text-left py-3 px-4">Method</th>
+                        <th className="text-left py-3 px-4">Status</th>
+                        <th className="text-left py-3 px-4">Message</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {donations.map((donation) => (
+                        <tr key={donation._id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4 text-sm">
+                            {new Date(donation.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            {donation.isAnonymous ? 'Anonymous' : donation.donorName}
+                          </td>
+                          <td className="py-3 px-4 text-sm font-semibold">
+                            ${donation.amount.toFixed(2)}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <span className="px-2 py-1 bg-gray-100 rounded text-xs">
+                              {donation.paymentMethod.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              donation.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              donation.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              donation.status === 'failed' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {donation.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-sm max-w-xs truncate">
+                            {donation.message || '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Donation by Payment Method */}
+            {donationStats && donationStats.byPaymentMethod.length > 0 && (
+              <div className="card">
+                <h2 className="text-2xl font-display font-bold mb-4">By Payment Method</h2>
+                <div className="space-y-3">
+                  {donationStats.byPaymentMethod.map((method) => (
+                    <div key={method._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 bg-white rounded text-sm font-medium">
+                          {method._id.toUpperCase()}
+                        </span>
+                        <span className="text-sm text-gray-600">
+                          {method.count} donation{method.count !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <span className="text-lg font-bold">
+                        ${method.totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

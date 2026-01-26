@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { Menu, X, Sparkles } from 'lucide-react'
+import DonateButton from './DonateButton'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -50,6 +51,7 @@ const Navbar = () => {
                 )}
               </Link>
             ))}
+            <DonateButton variant="outline" className="mr-2" />
             <Link to="/book" className="btn btn-primary">
               Book Now
             </Link>
@@ -82,6 +84,7 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              <DonateButton variant="outline" className="mx-4 mt-2" />
               <Link
                 to="/book"
                 onClick={() => setIsOpen(false)}

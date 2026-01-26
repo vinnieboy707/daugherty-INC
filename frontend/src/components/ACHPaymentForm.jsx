@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Building2, CheckCircle, AlertTriangle } from 'lucide-react';
 
-const ACHPaymentForm = ({ amount, onSuccess, onError, stripePromise }) => {
+const ACHPaymentForm = ({ amount, onSuccess, onError, stripePromise, donorInfo }) => {
   const [formData, setFormData] = useState({
-    accountHolderName: '',
+    accountHolderName: donorInfo?.donorName || '',
     routingNumber: '',
     accountNumber: '',
     confirmAccountNumber: '',
@@ -115,7 +115,7 @@ const ACHPaymentForm = ({ amount, onSuccess, onError, stripePromise }) => {
           routingNumber: formData.routingNumber,
           accountNumber: formData.accountNumber,
           accountType: formData.accountType,
-          email: formData.email || 'donor@example.com' // Use actual email from parent
+          email: donorInfo?.donorEmail || 'donor@example.com'
         })
       });
 
@@ -155,9 +155,9 @@ const ACHPaymentForm = ({ amount, onSuccess, onError, stripePromise }) => {
           customerId: bankData.customerId,
           bankAccountId: bankData.bankAccountId,
           donorName: formData.accountHolderName,
-          donorEmail: formData.email || '',
-          isAnonymous: false,
-          message: ''
+          donorEmail: donorInfo?.donorEmail || '',
+          isAnonymous: donorInfo?.isAnonymous || false,
+          message: donorInfo?.message || ''
         })
       });
 

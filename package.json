@@ -1,0 +1,32 @@
+{
+  "name": "daugherty-inc-fullstack",
+  "version": "2.0.0",
+  "description": "Ultra-premium full-stack tattoo consultation and booking system",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "cd frontend && npm run build",
+    "start:backend": "cd backend && npm start",
+    "start:production": "cd backend && npm run prod",
+    "test": "echo \"Tests coming soon\" && exit 0",
+    "deploy:check": "echo 'Checking production readiness...' && npm run test"
+  },
+  "keywords": [
+    "tattoo",
+    "booking",
+    "consultation",
+    "portfolio",
+    "ai-assistant",
+    "full-stack"
+  ],
+  "author": "Nate Daugherty",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

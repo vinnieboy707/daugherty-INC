@@ -2,8 +2,10 @@ const Donation = require('../models/Donation');
 const PaymentSettings = require('../models/PaymentSettings');
 const { validationResult } = require('express-validator');
 
-// Initialize Stripe once at module level
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe conditionally - only if key is provided
+const stripe = process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_dummy_key' 
+  ? require('stripe')(process.env.STRIPE_SECRET_KEY)
+  : null;
 
 // Create a new donation
 exports.createDonation = async (req, res) => {

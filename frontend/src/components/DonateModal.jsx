@@ -425,7 +425,6 @@ const DonateModal = ({ isOpen, onClose }) => {
                   <ACHPaymentForm
                     amount={amount}
                     onSuccess={(data) => {
-                      console.log('ACH payment success:', data);
                       setStep('success');
                     }}
                     onError={(err) => setError(err)}

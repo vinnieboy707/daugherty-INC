@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Building2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const ACHPaymentForm = ({ amount, onSuccess, onError, stripePromise, donorInfo }) => {

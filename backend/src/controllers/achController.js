@@ -1,5 +1,10 @@
 const Donation = require('../models/Donation');
 
+// Constants for validation
+const ROUTING_NUMBER_LENGTH = 9;
+const MIN_ACCOUNT_LENGTH = 4;
+const MAX_ACCOUNT_LENGTH = 17;
+
 // Initialize Stripe conditionally
 let stripe;
 try {
@@ -41,18 +46,20 @@ exports.createBankAccount = async (req, res) => {
     }
 
     // Validate routing number (9 digits)
-    if (!/^\d{9}$/.test(routingNumber)) {
+    const routingRegex = new RegExp(`^\\d{${ROUTING_NUMBER_LENGTH}}$`);
+    if (!routingRegex.test(routingNumber)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid routing number. Must be 9 digits.'
+        message: `Invalid routing number. Must be exactly ${ROUTING_NUMBER_LENGTH} digits.`
       });
     }
 
     // Validate account number (4-17 digits)
-    if (!/^\d{4,17}$/.test(accountNumber)) {
+    const accountRegex = new RegExp(`^\\d{${MIN_ACCOUNT_LENGTH},${MAX_ACCOUNT_LENGTH}}$`);
+    if (!accountRegex.test(accountNumber)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid account number. Must be 4-17 digits.'
+        message: `Invalid account number. Must be ${MIN_ACCOUNT_LENGTH}-${MAX_ACCOUNT_LENGTH} digits.`
       });
     }
 

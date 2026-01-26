@@ -1,15 +1,42 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const achController = require('../controllers/achController');
 const { validateDonation } = require('../middleware/validation');
 
-// Middleware to check if user is admin (you may need to adjust this based on your auth setup)
+// Middleware to check if user is admin with timing-safe comparison
 const isAdmin = (req, res, next) => {
-  // For now, we'll allow these operations
-  // In production, you should implement proper admin authentication
-  if (req.headers['x-admin-key'] === process.env.ADMIN_SECRET_KEY) {
-    next();
-  } else {
+  const adminKey = req.headers['x-admin-key'];
+  const expectedKey = process.env.ADMIN_SECRET_KEY;
+  
+  if (!adminKey || !expectedKey) {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access required'
+    });
+  }
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    const adminKeyBuffer = Buffer.from(adminKey);
+    const expectedKeyBuffer = Buffer.from(expectedKey);
+    
+    if (adminKeyBuffer.length !== expectedKeyBuffer.length) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+    
+    if (crypto.timingSafeEqual(adminKeyBuffer, expectedKeyBuffer)) {
+      next();
+    } else {
+      res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+  } catch (error) {
     res.status(403).json({
       success: false,
       message: 'Admin access required'

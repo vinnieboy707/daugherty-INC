@@ -2,6 +2,9 @@ const Donation = require('../models/Donation');
 const PaymentSettings = require('../models/PaymentSettings');
 const { validationResult } = require('express-validator');
 
+// Initialize Stripe once at module level
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 // Create a new donation
 exports.createDonation = async (req, res) => {
   try {
@@ -226,7 +229,6 @@ exports.getDonationStats = async (req, res) => {
 // Handle Stripe webhook
 exports.handleStripeWebhook = async (req, res) => {
   try {
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -295,8 +297,6 @@ exports.createPaymentIntent = async (req, res) => {
         error: 'Invalid donation amount'
       });
     }
-
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents

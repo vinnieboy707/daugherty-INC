@@ -95,7 +95,7 @@ const PaymentForm = ({ amount, paymentMethod, donorInfo, onSuccess, onError }) =
 
 // Main Modal Component
 const DonateModal = ({ isOpen, onClose }) => {
-  const [step, setStep] = useState('amount') // amount, details, payment, success
+  const [step, setStep] = useState('amount') // amount, details, payment, crypto-payment, success
   const [amount, setAmount] = useState(25)
   const [customAmount, setCustomAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('credit')
@@ -107,6 +107,7 @@ const DonateModal = ({ isOpen, onClose }) => {
   const [error, setError] = useState('')
   const [paymentSettings, setPaymentSettings] = useState(null)
   const [stripePromise, setStripePromise] = useState(null)
+  const [cryptoWallets, setCryptoWallets] = useState(null)
 
   useEffect(() => {
     fetchPaymentSettings()
@@ -181,11 +182,12 @@ const DonateModal = ({ isOpen, onClose }) => {
         
         if (paymentMethod === 'btc' || paymentMethod === 'crypto') {
           // Show wallet addresses for crypto payments
-          alert(`Please send ${paymentMethod === 'btc' ? 'Bitcoin' : 'cryptocurrency'} to:\n\n${
-            paymentMethod === 'btc' 
-              ? response.data.data.walletAddresses.btc 
-              : `ETH: ${response.data.data.walletAddresses.eth}\nUSDC: ${response.data.data.walletAddresses.usdc}`
-          }\n\nTransaction ID: ${response.data.data.donation._id}`)
+          const walletInfo = response.data.data.walletAddresses
+          setCryptoWallets(walletInfo)
+          setError('')
+          // Update to show crypto payment info in the UI instead of alert
+          setStep('crypto-payment')
+          return
         }
         
         setStep('success')
@@ -450,6 +452,97 @@ const DonateModal = ({ isOpen, onClose }) => {
 
                 <button onClick={handleBack} className="btn btn-secondary w-full">
                   Back
+                </button>
+              </div>
+            )}
+
+            {step === 'crypto-payment' && cryptoWallets && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Bitcoin className="w-8 h-8 text-amber-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Complete Your Crypto Payment</h3>
+                  <p className="text-gray-600 mb-4">
+                    Send ${amount} worth of cryptocurrency to the address below
+                  </p>
+                </div>
+
+                {paymentMethod === 'btc' && cryptoWallets.btc && (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <label className="block text-sm font-medium mb-2">Bitcoin Address</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={cryptoWallets.btc}
+                        readOnly
+                        className="input flex-1 font-mono text-sm"
+                      />
+                      <button
+                        onClick={() => navigator.clipboard.writeText(cryptoWallets.btc)}
+                        className="btn btn-secondary"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {paymentMethod === 'crypto' && (
+                  <>
+                    {cryptoWallets.eth && (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <label className="block text-sm font-medium mb-2">Ethereum Address</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={cryptoWallets.eth}
+                            readOnly
+                            className="input flex-1 font-mono text-sm"
+                          />
+                          <button
+                            onClick={() => navigator.clipboard.writeText(cryptoWallets.eth)}
+                            className="btn btn-secondary"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {cryptoWallets.usdc && (
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <label className="block text-sm font-medium mb-2">USDC Address</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={cryptoWallets.usdc}
+                            readOnly
+                            className="input flex-1 font-mono text-sm"
+                          />
+                          <button
+                            onClick={() => navigator.clipboard.writeText(cryptoWallets.usdc)}
+                            className="btn btn-secondary"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
+                  <p className="font-medium mb-2">Important:</p>
+                  <ul className="space-y-1 list-disc list-inside">
+                    <li>Send the exact amount in cryptocurrency</li>
+                    <li>Your donation will be confirmed after blockchain verification</li>
+                    <li>This may take several minutes depending on network congestion</li>
+                  </ul>
+                </div>
+
+                <button onClick={() => setStep('success')} className="btn btn-primary w-full">
+                  I've Sent the Payment
                 </button>
               </div>
             )}

@@ -15,6 +15,8 @@ const AdminDashboard = () => {
   const [paymentSettings, setPaymentSettings] = useState(null)
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (activeTab === 'portfolio') {
@@ -124,10 +126,14 @@ const AdminDashboard = () => {
     try {
       const response = await paymentSettingsAPI.update(updatedSettings)
       setPaymentSettings(response.data.data)
-      alert('Payment settings updated successfully!')
+      setSuccessMessage('Payment settings updated successfully!')
+      setErrorMessage('')
+      setTimeout(() => setSuccessMessage(''), 5000)
     } catch (error) {
       console.error('Error updating payment settings:', error)
-      alert('Failed to update payment settings')
+      setErrorMessage('Failed to update payment settings')
+      setSuccessMessage('')
+      setTimeout(() => setErrorMessage(''), 5000)
     }
   }
 
@@ -785,6 +791,20 @@ const AdminDashboard = () => {
         {/* Donations Tab */}
         {activeTab === 'donations' && (
           <div className="space-y-6">
+            {/* Success/Error Messages */}
+            {successMessage && (
+              <div className="p-4 bg-green-50 text-green-800 rounded-lg flex items-center gap-2">
+                <Check className="w-5 h-5" />
+                {successMessage}
+              </div>
+            )}
+            {errorMessage && (
+              <div className="p-4 bg-red-50 text-red-800 rounded-lg flex items-center gap-2">
+                <X className="w-5 h-5" />
+                {errorMessage}
+              </div>
+            )}
+
             {/* Statistics Cards */}
             {donationStats && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

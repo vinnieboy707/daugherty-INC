@@ -77,6 +77,17 @@ export const availabilityAPI = {
   delete: (id) => api.delete(`/availability/${id}`),
 };
 
+// Social Media API
+export const socialMediaAPI = {
+  initialize: () => api.post('/social-media/initialize'),
+  getAll: () => api.get('/social-media'),
+  get: (platform) => api.get(`/social-media/${platform}`),
+  update: (platform, data) => api.put(`/social-media/${platform}`, data),
+  disconnect: (platform) => api.post(`/social-media/${platform}/disconnect`),
+  sync: (platform) => api.post(`/social-media/${platform}/sync`),
+  importGooglePhotos: (photoIds) => api.post('/social-media/google_photos/import', { photoIds }),
+};
+
 // Health check
 export const healthCheck = () => api.get('/health');
 

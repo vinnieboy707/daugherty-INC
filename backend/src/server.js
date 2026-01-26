@@ -13,6 +13,7 @@ const portfolioRoutes = require('./routes/portfolio');
 const consultationRoutes = require('./routes/consultations');
 const reviewRoutes = require('./routes/reviews');
 const availabilityRoutes = require('./routes/availability');
+const socialMediaRoutes = require('./routes/socialMedia');
 
 // Initialize Express app
 const app = express();
@@ -98,6 +99,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/consultations', consultationRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/availability', availabilityRoutes);
+app.use('/api/social-media', socialMediaRoutes);
 
 // Welcome route
 app.get('/api', (req, res) => {

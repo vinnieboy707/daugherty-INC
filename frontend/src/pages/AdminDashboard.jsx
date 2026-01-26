@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users, Image as ImageIcon, CheckCircle } from 'lucide-react'
-import { portfolioAPI, consultationAPI, reviewsAPI } from '../services/api'
+import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users, Image as ImageIcon, CheckCircle, Share2, RefreshCw, X, Check } from 'lucide-react'
+import { portfolioAPI, consultationAPI, reviewsAPI, socialMediaAPI } from '../services/api'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('portfolio')
   const [portfolio, setPortfolio] = useState([])
   const [consultations, setConsultations] = useState([])
   const [reviewsWithPhotos, setReviewsWithPhotos] = useState([])
+  const [socialConnections, setSocialConnections] = useState([])
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
 
@@ -19,6 +20,8 @@ const AdminDashboard = () => {
       fetchConsultations()
     } else if (activeTab === 'client-photos') {
       fetchReviewsWithPhotos()
+    } else if (activeTab === 'social-media') {
+      fetchSocialConnections()
     }
   }, [activeTab])
 
@@ -55,6 +58,71 @@ const AdminDashboard = () => {
       console.error('Error fetching reviews with photos:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchSocialConnections = async () => {
+    setLoading(true)
+    try {
+      const response = await socialMediaAPI.getAll()
+      setSocialConnections(response.data.data)
+    } catch (error) {
+      console.error('Error fetching social connections:', error)
+      // If no connections exist, initialize them
+      if (error.response?.status === 404 || !response?.data?.data?.length) {
+        try {
+          await socialMediaAPI.initialize()
+          const retryResponse = await socialMediaAPI.getAll()
+          setSocialConnections(retryResponse.data.data)
+        } catch (initError) {
+          console.error('Error initializing connections:', initError)
+        }
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleConnectSocialMedia = async (platform) => {
+    const username = prompt(`Enter your ${platform} username or profile URL:`)
+    if (!username) return
+
+    try {
+      await socialMediaAPI.update(platform, {
+        username,
+        profileUrl: username.startsWith('http') ? username : `https://${platform}.com/${username}`,
+        isConnected: true,
+        isEnabled: true
+      })
+      alert(`${platform} connected successfully!`)
+      fetchSocialConnections()
+    } catch (error) {
+      console.error(`Error connecting ${platform}:`, error)
+      alert(`Failed to connect ${platform}`)
+    }
+  }
+
+  const handleDisconnectSocialMedia = async (platform) => {
+    if (!confirm(`Disconnect ${platform}?`)) return
+
+    try {
+      await socialMediaAPI.disconnect(platform)
+      alert(`${platform} disconnected`)
+      fetchSocialConnections()
+    } catch (error) {
+      console.error(`Error disconnecting ${platform}:`, error)
+      alert(`Failed to disconnect ${platform}`)
+    }
+  }
+
+  const handleSyncSocialMedia = async (platform) => {
+    try {
+      const response = await socialMediaAPI.sync(platform)
+      alert(response.data.message || `${platform} synced successfully!`)
+      fetchSocialConnections()
+    } catch (error) {
+      console.error(`Error syncing ${platform}:`, error)
+      alert(`Failed to sync ${platform}`)
     }
   }
 
@@ -171,7 +239,7 @@ const AdminDashboard = () => {
         </motion.div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-8">
+        <div className="flex gap-4 mb-8 flex-wrap">
           <button
             onClick={() => setActiveTab('portfolio')}
             className={`btn ${activeTab === 'portfolio' ? 'btn-primary' : 'btn-secondary'}`}
@@ -192,6 +260,13 @@ const AdminDashboard = () => {
           >
             <ImageIcon size={20} />
             Client Photo Submissions
+          </button>
+          <button
+            onClick={() => setActiveTab('social-media')}
+            className={`btn ${activeTab === 'social-media' ? 'btn-primary' : 'btn-secondary'}`}
+          >
+            <Share2 size={20} />
+            Social Media & Integrations
           </button>
         </div>
 
@@ -510,6 +585,144 @@ const AdminDashboard = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Social Media & Integrations Tab */}
+        {activeTab === 'social-media' && (
+          <div className="space-y-6">
+            <div className="bg-gray-800/50 p-6 rounded-lg">
+              <h3 className="text-xl font-display font-semibold mb-4">Social Media Connections</h3>
+              <p className="text-gray-400 mb-6">
+                Connect your social media accounts to sync content and integrate Google Photos for easy portfolio management.
+              </p>
+
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {socialConnections.map((connection) => (
+                    <motion.div
+                      key={connection.platform}
+                      className="bg-gray-900/50 p-6 rounded-lg border border-gray-700"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h4 className="text-lg font-semibold flex items-center gap-2">
+                            {connection.displayName}
+                            {connection.isConnected && (
+                              <Check size={18} className="text-green-500" />
+                            )}
+                          </h4>
+                          {connection.username && (
+                            <p className="text-sm text-gray-400 mt-1">@{connection.username}</p>
+                          )}
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs ${
+                          connection.isConnected ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'
+                        }`}>
+                          {connection.isConnected ? 'Connected' : 'Not Connected'}
+                        </span>
+                      </div>
+
+                      {connection.isConnected && (
+                        <div className="space-y-2 mb-4 text-sm text-gray-400">
+                          {connection.stats?.followers > 0 && (
+                            <p>Followers: {connection.stats.followers.toLocaleString()}</p>
+                          )}
+                          {connection.stats?.posts > 0 && (
+                            <p>Posts: {connection.stats.posts.toLocaleString()}</p>
+                          )}
+                          {connection.lastSync && (
+                            <p>Last synced: {new Date(connection.lastSync).toLocaleString()}</p>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        {!connection.isConnected ? (
+                          <button
+                            onClick={() => handleConnectSocialMedia(connection.platform)}
+                            className="btn btn-primary flex-1"
+                          >
+                            Connect
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleSyncSocialMedia(connection.platform)}
+                              className="btn btn-secondary flex-1 flex items-center justify-center gap-2"
+                              disabled={loading}
+                            >
+                              <RefreshCw size={16} />
+                              Sync
+                            </button>
+                            <button
+                              onClick={() => handleDisconnectSocialMedia(connection.platform)}
+                              className="btn bg-red-500/20 text-red-400 hover:bg-red-500/30 flex items-center justify-center"
+                            >
+                              <X size={16} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      {connection.platform === 'google_photos' && connection.isConnected && (
+                        <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                          <p className="text-sm text-blue-300 mb-2">
+                            <strong>Google Photos Integration:</strong>
+                          </p>
+                          <p className="text-xs text-gray-400 mb-3">
+                            Sync your Google Photos albums directly to your portfolio. Photos will be automatically optimized and organized.
+                          </p>
+                          <button className="btn btn-sm btn-secondary">
+                            Browse Photos
+                          </button>
+                        </div>
+                      )}
+
+                      {connection.platform === 'instagram' && connection.isConnected && (
+                        <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                          <p className="text-xs text-gray-400">
+                            Instagram posts will be synced automatically. You can choose which posts to add to your portfolio.
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-8 p-6 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <h4 className="text-lg font-semibold mb-3">Integration Benefits</h4>
+                <ul className="space-y-2 text-sm text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Instagram:</strong> Automatically sync your tattoo posts and engage with followers</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Facebook:</strong> Share portfolio updates and consultation availability</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>TikTok:</strong> Share tattoo process videos and time-lapses</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Google Photos:</strong> Import high-quality photos directly to your portfolio with one click</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Pinterest:</strong> Reach a wider audience with your tattoo designs</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         )}

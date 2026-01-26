@@ -11,6 +11,7 @@ const connectDB = require('./config/database');
 const portfolioRoutes = require('./routes/portfolio');
 const consultationRoutes = require('./routes/consultations');
 const reviewRoutes = require('./routes/reviews');
+const availabilityRoutes = require('./routes/availability');
 
 // Initialize Express app
 const app = express();
@@ -61,6 +62,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/consultations', consultationRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 // Welcome route
 app.get('/api', (req, res) => {
@@ -71,6 +73,7 @@ app.get('/api', (req, res) => {
       portfolio: '/api/portfolio',
       consultations: '/api/consultations',
       reviews: '/api/reviews',
+      availability: '/api/availability',
       health: '/api/health'
     }
   });

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, Image, User, CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
+import { Upload, Image, User, CheckCircle, AlertCircle, Sparkles, Calendar as CalendarIcon } from 'lucide-react'
 import { consultationAPI } from '../services/api'
+import Calendar from '../components/Calendar'
 
 const BookConsultation = () => {
   const [step, setStep] = useState(1)
@@ -15,6 +16,8 @@ const BookConsultation = () => {
     desiredPlacement: '',
     painThreshold: 'Medium',
     consultationType: 'phone',
+    requestedDate: '',
+    additionalComments: '',
     vipServices: {
       priorityScheduling: false,
       homeVisit: false,
@@ -28,6 +31,7 @@ const BookConsultation = () => {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+  const [showCalendar, setShowCalendar] = useState(false)
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -428,6 +432,81 @@ const BookConsultation = () => {
                   <p className="text-sm text-gray-600">Meet in person to discuss your tattoo</p>
                 </div>
               </label>
+            </div>
+          </div>
+
+          {/* Appointment Request */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-display font-bold mb-6 flex items-center gap-2">
+              <CalendarIcon className="text-primary-600" />
+              Request Appointment Date
+            </h2>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                View Nate's availability and request a specific date for your consultation or tattoo session.
+              </p>
+              
+              <button
+                type="button"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="btn-primary flex items-center gap-2"
+              >
+                <CalendarIcon className="w-5 h-5" />
+                {showCalendar ? 'Hide Calendar' : 'View Availability Calendar'}
+              </button>
+
+              {showCalendar && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4"
+                >
+                  <Calendar 
+                    onDateSelect={(date) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        requestedDate: date
+                      }))
+                    }}
+                  />
+                </motion.div>
+              )}
+
+              <div>
+                <label className="label">Requested Date (Optional)</label>
+                <input
+                  type="date"
+                  name="requestedDate"
+                  value={formData.requestedDate ? new Date(formData.requestedDate).toISOString().split('T')[0] : ''}
+                  onChange={handleInputChange}
+                  className="input"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Select your preferred date. Nate will contact you to confirm availability.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Comments */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-display font-bold mb-6">Additional Comments</h2>
+            <div>
+              <label className="label">Any Additional Information (Optional)</label>
+              <textarea
+                name="additionalComments"
+                value={formData.additionalComments}
+                onChange={handleInputChange}
+                rows="4"
+                className="input"
+                placeholder="Include any other information, questions, or special requests..."
+                maxLength="1000"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                {formData.additionalComments.length}/1000 characters
+              </p>
             </div>
           </div>
 

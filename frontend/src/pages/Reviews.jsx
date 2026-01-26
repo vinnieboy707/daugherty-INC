@@ -248,8 +248,18 @@ const ReviewFormModal = ({ onClose, onSuccess }) => {
     isAnonymous: false,
     tattooType: ''
   })
+  const [photos, setPhotos] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  const handlePhotoUpload = (e) => {
+    const files = Array.from(e.target.files)
+    setPhotos(prev => [...prev, ...files].slice(0, 5))
+  }
+
+  const removePhoto = (index) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -257,7 +267,19 @@ const ReviewFormModal = ({ onClose, onSuccess }) => {
     setError('')
 
     try {
-      await reviewsAPI.create(formData)
+      const formDataToSend = new FormData()
+      
+      // Add form fields
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, formData[key])
+      })
+      
+      // Add photos
+      photos.forEach(photo => {
+        formDataToSend.append('photos', photo)
+      })
+      
+      await reviewsAPI.create(formDataToSend)
       onSuccess()
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit review')
@@ -396,6 +418,49 @@ const ReviewFormModal = ({ onClose, onSuccess }) => {
                 <option value="lettering">Lettering</option>
                 <option value="other">Other</option>
               </select>
+            </div>
+
+            {/* Photo Upload */}
+            <div>
+              <label className="label">Upload Photos (Optional, up to 5)</label>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-3 text-sm text-purple-800">
+                <p><strong>Share Your Tattoo!</strong> Upload photos of your finished tattoo. If Nate approves, your photos may be added to the official portfolio gallery.</p>
+              </div>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                <input
+                  type="file"
+                  id="reviewPhotos"
+                  multiple
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                <label htmlFor="reviewPhotos" className="cursor-pointer">
+                  <Plus className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-600">Click to upload photos of your tattoo</p>
+                  <p className="text-sm text-gray-500 mt-1">JPG, PNG, or GIF (max 10MB each)</p>
+                </label>
+              </div>
+              {photos.length > 0 && (
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mt-3">
+                  {photos.map((file, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Photo ${index + 1}`}
+                        className="w-full h-20 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Info Box */}

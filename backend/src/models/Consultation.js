@@ -87,7 +87,15 @@ const consultationSchema = new mongoose.Schema({
     enum: ['phone', 'in-person'],
     default: 'phone'
   },
+  requestedDate: {
+    type: Date,
+    required: false
+  },
   preferredDate: Date,
+  additionalComments: {
+    type: String,
+    maxlength: 1000
+  },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'completed', 'cancelled'],

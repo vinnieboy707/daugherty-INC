@@ -1,21 +1,24 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
-import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users } from 'lucide-react'
-import { portfolioAPI, consultationAPI } from '../services/api'
+import { Upload, Trash2, Eye, EyeOff, GripVertical, Calendar, Users, Image as ImageIcon, CheckCircle } from 'lucide-react'
+import { portfolioAPI, consultationAPI, reviewsAPI } from '../services/api'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('portfolio')
   const [portfolio, setPortfolio] = useState([])
   const [consultations, setConsultations] = useState([])
+  const [reviewsWithPhotos, setReviewsWithPhotos] = useState([])
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
 
   useEffect(() => {
     if (activeTab === 'portfolio') {
       fetchPortfolio()
-    } else {
+    } else if (activeTab === 'consultations') {
       fetchConsultations()
+    } else if (activeTab === 'client-photos') {
+      fetchReviewsWithPhotos()
     }
   }, [activeTab])
 
@@ -40,6 +43,38 @@ const AdminDashboard = () => {
       console.error('Error fetching consultations:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchReviewsWithPhotos = async () => {
+    setLoading(true)
+    try {
+      const response = await reviewsAPI.getWithPhotos()
+      setReviewsWithPhotos(response.data.data)
+    } catch (error) {
+      console.error('Error fetching reviews with photos:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleApprovePhotoForPortfolio = async (reviewId, photoIndex) => {
+    if (!confirm('Add this photo to the official portfolio?')) return
+
+    try {
+      const description = prompt('Enter a description for this photo (optional):')
+      const tags = prompt('Enter tags separated by commas (optional):')
+      
+      await reviewsAPI.approvePhotoForPortfolio(reviewId, photoIndex, {
+        description,
+        tags: tags ? tags.split(',').map(t => t.trim()) : []
+      })
+      
+      alert('Photo successfully added to portfolio!')
+      fetchReviewsWithPhotos()
+    } catch (error) {
+      console.error('Error approving photo:', error)
+      alert('Failed to add photo to portfolio')
     }
   }
 
@@ -150,6 +185,13 @@ const AdminDashboard = () => {
           >
             <Calendar size={20} />
             Consultations
+          </button>
+          <button
+            onClick={() => setActiveTab('client-photos')}
+            className={`btn ${activeTab === 'client-photos' ? 'btn-primary' : 'btn-secondary'}`}
+          >
+            <ImageIcon size={20} />
+            Client Photo Submissions
           </button>
         </div>
 
@@ -386,6 +428,89 @@ const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Client Photo Submissions Tab */}
+        {activeTab === 'client-photos' && (
+          <div className="space-y-6">
+            <div className="card">
+              <h2 className="text-2xl font-display font-bold mb-4">
+                Client Submitted Photos for Portfolio Consideration
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Review photos submitted by clients and approve them to add to the official portfolio.
+              </p>
+
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-4">Loading submissions...</p>
+                </div>
+              ) : reviewsWithPhotos.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <p>No client photo submissions yet</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {reviewsWithPhotos.map((review) => (
+                    <div key={review._id} className="border rounded-lg p-6 bg-gray-50">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-bold text-lg">{review.title}</h3>
+                          <p className="text-sm text-gray-600">
+                            By {review.authorName} • {review.tattooType || 'Unspecified type'}
+                          </p>
+                          <p className="text-gray-700 mt-2">{review.comment}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <span key={i} className={`text-lg ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {review.submittedPhotos.map((photo, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={photo.url}
+                              alt={`Submission ${index + 1}`}
+                              className="w-full h-40 object-cover rounded-lg"
+                            />
+                            {photo.approvedForPortfolio ? (
+                              <div className="absolute inset-0 bg-green-500/20 rounded-lg flex items-center justify-center">
+                                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                                  <CheckCircle size={16} />
+                                  Approved
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleApprovePhotoForPortfolio(review._id, index)}
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+                              >
+                                <span className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                                  <CheckCircle size={18} />
+                                  Add to Portfolio
+                                </span>
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <p className="text-xs text-gray-400 mt-4">
+                        Submitted: {new Date(review.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

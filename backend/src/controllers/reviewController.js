@@ -1,4 +1,5 @@
 const Review = require('../models/Review');
+const Portfolio = require('../models/Portfolio');
 
 // Get all approved reviews
 exports.getAllReviews = async (req, res) => {
@@ -88,6 +89,20 @@ exports.createReview = async (req, res) => {
       });
     }
     
+    // Handle submitted photos
+    const submittedPhotos = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        submittedPhotos.push({
+          filename: file.filename,
+          path: file.path,
+          url: `/uploads/${file.filename}`,
+          uploadedAt: new Date(),
+          approvedForPortfolio: false
+        });
+      });
+    }
+    
     const review = new Review({
       rating,
       title,
@@ -95,6 +110,7 @@ exports.createReview = async (req, res) => {
       authorName: isAnonymous ? 'Anonymous' : (authorName || 'Anonymous'),
       isAnonymous: isAnonymous || false,
       tattooType,
+      submittedPhotos,
       isApproved: false  // Requires admin approval
     });
     
@@ -231,6 +247,69 @@ exports.getPendingReviews = async (req, res) => {
       .sort({ createdAt: -1 });
     
     res.json({ success: true, data: reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Get reviews with submitted photos (admin only)
+exports.getReviewsWithPhotos = async (req, res) => {
+  try {
+    const reviews = await Review.find({
+      'submittedPhotos.0': { $exists: true }
+    }).sort({ createdAt: -1 });
+    
+    res.json({ success: true, data: reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Approve photo from review for portfolio (admin only)
+exports.approvePhotoForPortfolio = async (req, res) => {
+  try {
+    const { reviewId, photoIndex } = req.params;
+    const { description, tags } = req.body;
+    
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return res.status(404).json({ success: false, error: 'Review not found' });
+    }
+    
+    if (!review.submittedPhotos[photoIndex]) {
+      return res.status(404).json({ success: false, error: 'Photo not found' });
+    }
+    
+    const photo = review.submittedPhotos[photoIndex];
+    
+    // Create new portfolio entry
+    const portfolioItem = new Portfolio({
+      image: {
+        filename: photo.filename,
+        path: photo.path,
+        url: photo.url
+      },
+      description: description || `Client submission - ${review.tattooType || 'tattoo'}`,
+      tags: tags || [review.tattooType || 'client-submission'],
+      isVisible: true,
+      order: await Portfolio.countDocuments() + 1
+    });
+    
+    await portfolioItem.save();
+    
+    // Mark photo as approved in review
+    review.submittedPhotos[photoIndex].approvedForPortfolio = true;
+    review.submittedPhotos[photoIndex].portfolioId = portfolioItem._id;
+    await review.save();
+    
+    res.json({
+      success: true,
+      message: 'Photo approved and added to portfolio',
+      data: {
+        portfolioItem,
+        review
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

@@ -40,6 +40,25 @@ const reviewSchema = new mongoose.Schema({
     required: false
   },
   
+  // Client Submitted Photos (for potential portfolio addition)
+  submittedPhotos: [{
+    filename: String,
+    path: String,
+    url: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    },
+    approvedForPortfolio: {
+      type: Boolean,
+      default: false
+    },
+    portfolioId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Portfolio'
+    }
+  }],
+  
   // Moderation
   isApproved: {
     type: Boolean,

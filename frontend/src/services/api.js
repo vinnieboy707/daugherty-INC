@@ -39,13 +39,42 @@ export const consultationAPI = {
 export const reviewsAPI = {
   getAll: (params) => api.get('/reviews', { params }),
   get: (id) => api.get(`/reviews/${id}`),
-  create: (data) => api.post('/reviews', data),
+  create: (data) => {
+    // Handle both FormData and regular objects
+    const isFormData = data instanceof FormData;
+    return api.post('/reviews', data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
+    });
+  },
   update: (id, data) => api.put(`/reviews/${id}`, data),
   approve: (id) => api.put(`/reviews/${id}/approve`),
   feature: (id, featured) => api.put(`/reviews/${id}/feature`, { featured }),
   markHelpful: (id) => api.post(`/reviews/${id}/helpful`),
   delete: (id) => api.delete(`/reviews/${id}`),
   getPending: () => api.get('/reviews/admin/pending'),
+  getWithPhotos: () => api.get('/reviews/admin/with-photos'),
+  approvePhotoForPortfolio: (reviewId, photoIndex, data) => 
+    api.post(`/reviews/${reviewId}/photos/${photoIndex}/approve`, data),
+};
+
+// Availability API
+export const availabilityAPI = {
+  getAll: (startDate, endDate) => {
+    const params = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    return api.get('/availability', { params });
+  },
+  getByDate: (date) => api.get(`/availability/${date}`),
+  getCalendarMonth: (month, year) => {
+    const params = {};
+    if (month) params.month = month;
+    if (year) params.year = year;
+    return api.get('/availability/calendar/month', { params });
+  },
+  create: (data) => api.post('/availability', data),
+  update: (id, data) => api.put(`/availability/${id}`, data),
+  delete: (id) => api.delete(`/availability/${id}`),
 };
 
 // Health check

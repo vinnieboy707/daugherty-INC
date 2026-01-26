@@ -4,6 +4,22 @@
 
 This guide covers deploying the Daugherty Inc application to production.
 
+### Automated deployment
+
+For an end-to-end, order-safe flow with cache cleaning and failure rollback:
+
+```bash
+# From repo root
+chmod +x deploy.sh
+npm run deploy
+```
+
+This will:
+- Clean caches before/after
+- Install backend/frontend deps
+- Build the frontend
+- Run the Docker deployment script
+
 ### Prerequisites
 
 - Node.js 18+ installed on production server

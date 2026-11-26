@@ -1,4 +1,5 @@
-require('dotenv').config();
+// Keys come from the one shared secrets file (see src/config/loadEnv.js).
+require('./config/loadEnv').loadEnv({ project: 'daugherty' });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
